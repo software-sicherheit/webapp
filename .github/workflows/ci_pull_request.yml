@@ -1,0 +1,21 @@
+name: CI - pull_request
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Setup node
+        uses: actions/setup-node@v1
+      - name: Install, Lint and Build
+        run: |
+          yarn install --frozen-lockfile
+          yarn lint
+          yarn build

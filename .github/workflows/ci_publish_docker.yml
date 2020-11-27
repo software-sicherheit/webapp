@@ -1,0 +1,20 @@
+name: Publish Docker Image to GitHub Registry
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-webapp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Publish to Registry
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: software-sicherheit/webapp/e2e-cloud-webapp:latest
+          dockerfile: Dockerfile
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          registry: docker.pkg.github.com
