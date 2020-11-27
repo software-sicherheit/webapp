@@ -1,8 +1,4 @@
 name: Publish Docker Image to GitHub Registry
-on:
-  push:
-    branches:
-      - master
 jobs:
   build-webapp:
     runs-on: ubuntu-latest
