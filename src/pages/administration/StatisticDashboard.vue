@@ -6,7 +6,8 @@
           <p class="title">Dashboard</p>
         </template>
         <template #content>
-          <chart type="radar" :data="getChartData()"></chart>
+          <p v-if="isLoading">Loading...</p>
+          <chart v-else type="radar" :data="chartData"></chart>
         </template>
       </pv-card>
     </div>
@@ -20,9 +21,24 @@ export default {
   components: {
     Chart
   },
-  methods: {
-    getChartData() {
-      console.log('Get chart data...');
+  data() {
+    return {
+      isLoading: false
+    };
+  },
+  computed: {
+    data() {
+      const data = this.$store.getters['statistics/statistics'];
+      return [
+        data.cpuUsage,
+        data.ramUsage,
+        data.diskUsage,
+        data.swapUsage,
+        data.inboundTraffic,
+        data.outboundTraffic
+      ];
+    },
+    chartData() {
       return {
         labels: [
           'CPU Usage',
@@ -41,10 +57,25 @@ export default {
             pointBorderColor: '#fff',
             pointHoverBackgroundColor: '#fff',
             pointHoverBorderColor: 'rgba(255,99,132,1)',
-            data: [28, 48, 40, 90, 45, 50]
+            data: this.data
           }
         ]
       };
+    }
+  },
+  created() {
+    this.loadStatistics();
+  },
+  methods: {
+    async loadStatistics() {
+      this.isLoading = true;
+      try {
+        await this.$store.dispatch('statistics/fetchStatistics');
+        console.log('Successfully fetched statistics');
+      } catch (err) {
+        console.error(err);
+      }
+      this.isLoading = false;
     }
   }
 };
