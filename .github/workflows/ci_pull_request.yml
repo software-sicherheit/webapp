@@ -2,9 +2,9 @@ name: CI - pull_request
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   build:
@@ -17,5 +17,5 @@ jobs:
       - name: Install, Lint and Build
         run: |
           yarn install --frozen-lockfile
-          yarn test
+          yarn lint
           yarn build
