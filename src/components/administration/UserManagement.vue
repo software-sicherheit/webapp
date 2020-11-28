@@ -14,7 +14,7 @@
       >
         <template #option="slotProps">
           <div class="country-item">
-            <div>{{ slotProps.option.name }}</div>
+            <div>{{ slotProps.option.username }}</div>
           </div>
         </template>
       </Listbox>
@@ -63,7 +63,7 @@ export default {
     return {
       isVisible: false,
       isLoading: false,
-      selectedUsers: []
+      selectedUsers: null
     };
   },
   computed: {
@@ -82,14 +82,12 @@ export default {
         console.error(err);
       }
       this.isLoading = false;
-      console.log(this.users);
-      console.log(this.usersData);
     },
     async confirmDialog() {
       console.log('Requesting to delete users');
       try {
         await this.$store.dispatch('administration/deleteUsers', {
-          users: this.selectedUsers[0]
+          userId: this.selectedUsers.id
         });
         console.log('Successfully deleted users');
       } catch (err) {
