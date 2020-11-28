@@ -9,13 +9,15 @@ import {
   RSA_OAEP_IMPORT_ALGORITHM,
   RSA_PSS_GEN_ALGORITHM,
   RSA_PSS_IMPORT_ALGORITHM,
-  FINGERPRINT_ALGORITHM
+  FINGERPRINT_ALGORITHM,
+  RSA_PSS_ALGORITHM
 } from './config.js';
 import { getSaltPasswordHash } from './constants.js';
 import {
   base64StringToArrayBuffer,
   stringToArrayBuffer,
-  arrayBufferToBase64
+  arrayBufferToBase64,
+  blobToArrayBuffer
 } from './utils.js';
 
 export const newIV = () =>
@@ -177,3 +179,51 @@ export const createFingerprint = string =>
     .then(hashArray =>
       hashArray.map(b => b.toString(16).padStart(2, '0')).join(':')
     );
+
+export const exportSymmetricKey = cryptoKey =>
+  Promise.resolve(wca.exportKey('raw', cryptoKey)).then(arrayBuffer =>
+    arrayBufferToBase64(arrayBuffer)
+  );
+
+export const encryptDocument = async (
+  blob,
+  rsaPSSPrivateKey,
+  rsaOAEPPublicKey
+) => {
+  const iv = await newIV().then(base64 => base64StringToArrayBuffer(base64));
+  const key = await wca.generateKey(
+    AES_CBC_PASSWORD_KEY_GEN_ALGORITHM(),
+    true,
+    ['encrypt', 'decrypt']
+  );
+  const encryptedBlob = await Promise.resolve(
+    blobToArrayBuffer(blob)
+  ).then(arrayBuffer =>
+    wca.encrypt(AES_CBC_PASSWORD_KEY_ALGORITHM(iv), key, arrayBuffer)
+  );
+  const encryptedKey = await Promise.resolve(exportSymmetricKey(key))
+    .then(base64 => base64StringToArrayBuffer(base64))
+    .then(async arrayBuffer =>
+      wca.encrypt(RSA_OAEP_ALGORITHM(), rsaOAEPPublicKey, arrayBuffer)
+    );
+  const signature = await wca.sign(
+    RSA_PSS_ALGORITHM(),
+    rsaPSSPrivateKey,
+    encryptedBlob
+  );
+  const completeBlob = new Blob([encryptedBlob, iv, encryptedKey, signature]);
+  return await blobToArrayBuffer(completeBlob).then(arrayBuffer =>
+    arrayBufferToBase64(arrayBuffer)
+  );
+};
+
+export const encryptWithDataNameKey = (filename, dataNameKey, iv) =>
+  Promise.resolve(stringToArrayBuffer(filename))
+    .then(async arrayBuffer =>
+      wca.encrypt(
+        AES_CBC_PASSWORD_KEY_ALGORITHM(base64StringToArrayBuffer(iv)),
+        dataNameKey,
+        arrayBuffer
+      )
+    )
+    .then(arrayBuffer => arrayBufferToBase64(arrayBuffer));

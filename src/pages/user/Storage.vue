@@ -58,11 +58,13 @@
             <pv-button
               icon="pi pi-download"
               class="p-pv-button-rounded p-pv-button-success p-mr-2 p-shadow-10"
+              :disabled="isLoading"
               @click="downloadDocument(slotProps.data.id)"
             />
             <pv-button
               icon="pi pi-trash"
               class="p-pv-button-rounded p-pv-button-warning p-shadow-10"
+              :disabled="isLoading"
               @click="deleteDocument(slotProps.data.id)"
             />
           </template>
@@ -86,11 +88,19 @@ export default {
     DataTable,
     Column
   },
+  async created() {
+    await this.loadDocuments();
+  },
   data() {
     return {
-      documents: [],
+      isLoading: false,
       filters: {}
     };
+  },
+  computed: {
+    documents() {
+      return this.$store.getters['storage/documents'];
+    }
   },
   methods: {
     formatBytes(value) {
@@ -99,31 +109,54 @@ export default {
     formatDateTime(value) {
       return value.toISOString();
     },
-    uploadDocument(event) {
-      console.log('Requesting to upload document...');
-      const file = event.files[0];
-      const document = {
-        id: this.documents.length + 1,
-        filename: file.name,
-        contentType: file.type,
-        size: file.size,
-        lastModifiedDate: file.lastModifiedDate,
-        blob: new Blob([file])
-      };
-      this.documents.push(document);
+    async loadDocuments() {
+      this.isLoading = true;
+      console.log('Reqeusting to load all Documents');
+      try {
+        await this.$store.dispatch('storage/fetchDocuments');
+      } catch (err) {
+        console.error(err);
+      }
+      this.isLoading = false;
     },
-    downloadDocument(documentId) {
+    async uploadDocument(event) {
+      this.isLoading = true;
+      console.log('Requesting to upload document...');
+      try {
+        const file = event.files[0];
+        const document = {
+          filename: file.name,
+          contentType: file.type,
+          size: file.size,
+          lastModifiedDate: file.lastModifiedDate,
+          blob: new Blob([file])
+        };
+        await this.$store.dispatch('storage/upload', { document: document });
+      } catch (err) {
+        console.error(err);
+      }
+      this.isLoading = false;
+    },
+    async downloadDocument(documentId) {
+      this.isLoading = true;
       console.log('Requesting to download document with id=' + documentId);
       const document = this.documents.find(
         document => document.id === documentId
       );
       saveData(document.blob, document.filename);
+      this.isLoading = false;
     },
-    deleteDocument(documentId) {
+    async deleteDocument(documentId) {
+      this.isLoading = true;
       console.log('Requesting to delete document with id=' + documentId);
-      this.documents = this.documents.filter(
-        document => document.id !== documentId
-      );
+      try {
+        await this.$store.dispatch('storage/delete', {
+          documentId: documentId
+        });
+      } catch (err) {
+        console.error(err);
+      }
+      this.isLoading = false;
     }
   }
 };
