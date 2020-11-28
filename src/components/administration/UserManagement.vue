@@ -2,11 +2,13 @@
   <pv-dialog pv-dialog header="User Management" v-model:visible="isVisible">
     <template #default>
       <h4>Which users should be deleted?</h4>
+      <p v-if="isLoading">Loading...</p>
       <Listbox
+        v-else
         v-model="selectedUsers"
         :options="users"
-        :multiple="true"
-        :filter="true"
+        :multiple="false"
+        :filter="false"
         optionLabel="name"
         listStyle="max-height:25vh"
       >
@@ -41,6 +43,9 @@ export default {
   components: {
     Listbox
   },
+  created() {
+    this.loadUsers();
+  },
   watch: {
     shallDialogBeOpen(value) {
       this.isVisible = value;
@@ -57,30 +62,42 @@ export default {
   data() {
     return {
       isVisible: false,
-      selectedUsers: [],
-      users: [
-        { id: '0', name: 'User 1' },
-        { id: '1', name: 'User 2' },
-        { id: '2', name: 'User 3' },
-        { id: '3', name: 'User 4' },
-        { id: '4', name: 'User 5' },
-        { id: '5', name: 'User 6' },
-        { id: '6', name: 'User 7' },
-        { id: '7', name: 'User 8' },
-        { id: '8', name: 'User 9' },
-        { id: '9', name: 'User 10' }
-      ]
+      isLoading: false,
+      selectedUsers: []
     };
   },
+  computed: {
+    users() {
+      return this.$store.getters['administration/users'];
+    }
+  },
   methods: {
-    closeDialog() {
-      this.$emit('close-dialog');
-      console.log(84651);
+    async loadUsers() {
+      console.log('Requesting to fetch users');
+      this.isLoading = true;
+      try {
+        await this.$store.dispatch('administration/fetchUsers');
+        console.log('Successfully fetched users');
+      } catch (err) {
+        console.error(err);
+      }
+      this.isLoading = false;
+      console.log(this.users);
+      console.log(this.usersData);
     },
-    confirmDialog() {
-      console.log('Now Deleting selected user...');
-      console.log(this.selectedUsers);
-      this.selectedUsers = [];
+    async confirmDialog() {
+      console.log('Requesting to delete users');
+      try {
+        await this.$store.dispatch('administration/deleteUsers', {
+          users: this.selectedUsers[0]
+        });
+        console.log('Successfully deleted users');
+      } catch (err) {
+        console.error(err);
+      }
+      this.$emit('close-dialog');
+    },
+    closeDialog() {
       this.$emit('close-dialog');
     }
   }
