@@ -10,8 +10,7 @@ export default {
     );
     return context.dispatch('auth', {
       ...payload,
-      endpoint:
-        'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=AIzaSyArHTXn2ZXg36aPEbWD4jJNtVyFJ1D3xbw'
+      endpoint: 'http://localhost:8085/api/v1/login/'
     });
   },
   async signup(context, payload) {
@@ -20,8 +19,7 @@ export default {
     );
     return context.dispatch('auth', {
       ...payload,
-      endpoint:
-        'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=AIzaSyArHTXn2ZXg36aPEbWD4jJNtVyFJ1D3xbw'
+      endpoint: 'http://localhost:8085/api/v1/register/'
     });
   },
   async auth(context, payload) {
@@ -33,10 +31,12 @@ export default {
     console.log('Requesting to get JWT from middleware');
     const response = await fetch(payload.endpoint, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({
-        email: payload.username,
-        password: passwordHash,
-        returnSecureToken: true
+        username: payload.username,
+        password: passwordHash
       })
     });
 
@@ -49,20 +49,17 @@ export default {
     }
     console.log('Response was okay and now setting data to localStorage');
 
-    const expiresIn = +responseData.expiresIn * 1000;
-    const expirationDate = new Date().getTime() + expiresIn;
+    //const expiresIn = +responseData.expiresIn * 1000;
+    //const expirationDate = new Date().getTime() + expiresIn;
 
-    localStorage.setItem('token', responseData.idToken);
-    localStorage.setItem('userId', responseData.localId);
-    localStorage.setItem('tokenExpiration', expirationDate);
+    localStorage.setItem('access_token', responseData.access_token);
 
-    console.log('Now dispatching autoLogout to vuex');
-    timer = setTimeout(() => context.dispatch('autoLogout'), expiresIn);
+    //console.log('Now dispatching autoLogout to vuex');
+    //timer = setTimeout(() => context.dispatch('autoLogout'), expiresIn);
 
     console.log('Now committing user auth data to vuex');
     context.commit('setUser', {
-      token: responseData.idToken,
-      userId: responseData.localId
+      token: responseData.access_token
     });
   },
   logout(context) {

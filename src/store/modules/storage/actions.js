@@ -3,7 +3,7 @@ import {
   encryptWithDataNameKey
 } from '../../../api/wca/index.js';
 
-const BASE_URL = 'https://e2e-cloud.firebaseio.com';
+const BASE_URL = 'http://localhost:8080/api/v1';
 
 export default {
   async fetchDocuments(context) {
@@ -30,7 +30,7 @@ export default {
         contentType: 'application/json',
         size: 42,
         lastModifiedDate: new Date(),
-        blob: new Blob(['Hello World 0!'])
+        blob: new Blob(['Hello World!'])
       }
     ];
 
@@ -69,8 +69,13 @@ export default {
       cryptoKeys.rsaOAEP.publicKey
     );
 
+    const token = context.rootGetters['auth/token'];
     const response = await fetch(`${BASE_URL}/documents.json`, {
       method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({
         filename: filename,
         contentType: contentType,
