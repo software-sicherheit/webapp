@@ -60,7 +60,6 @@ export default {
       this.isLoading = true;
       try {
         await this.$store.dispatch('user/deleteAccount');
-        await this.$store.dispatch('auth/deleteAccount');
         console.log('Successfully deleted the account.');
         this.$emit('close-dialog');
         this.$router.replace('/login');

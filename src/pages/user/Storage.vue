@@ -48,11 +48,7 @@
           field="lastModifiedDate"
           header="Last Modified Date"
           :sortable="true"
-        >
-          <template #body="slotProps">
-            {{ formatDateTime(slotProps.data.lastModifiedDate) }}
-          </template>
-        </column>
+        ></column>
         <column :exportable="false">
           <template #body="slotProps">
             <pv-button
@@ -107,7 +103,8 @@ export default {
       return value + ' Bytes';
     },
     formatDateTime(value) {
-      return value.toISOString();
+      return value;
+      //return value.toISOString();
     },
     async loadDocuments() {
       this.isLoading = true;
@@ -128,10 +125,13 @@ export default {
           filename: file.name,
           contentType: file.type,
           size: file.size,
-          lastModifiedDate: file.lastModifiedDate,
+          lastModifiedDate: file.lastModified,
           blob: new Blob([file])
         };
+        console.log(file);
+        console.log(document);
         await this.$store.dispatch('storage/upload', { document: document });
+        await this.loadDocuments();
       } catch (err) {
         console.error(err);
       }
@@ -148,6 +148,7 @@ export default {
     },
     async deleteDocument(documentId) {
       this.isLoading = true;
+      console.log(this.documents);
       console.log('Requesting to delete document with id=' + documentId);
       try {
         await this.$store.dispatch('storage/delete', {

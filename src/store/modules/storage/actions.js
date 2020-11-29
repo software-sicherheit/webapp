@@ -3,13 +3,17 @@ import {
   encryptWithDataNameKey
 } from '../../../api/wca/index.js';
 
-const BASE_URL = 'http://localhost:8080/api/v1';
+const BASE_URL = 'http://localhost:8085/api/v1';
 
 export default {
   async fetchDocuments(context) {
     console.log('Requesting to fetch all documents from middleware');
-    const response = await fetch(`${BASE_URL}/documents.json`, {
-      method: 'GET'
+    const token = context.rootGetters['auth/token'];
+    const response = await fetch(`${BASE_URL}/documents`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     });
 
     const responseData = await response.json();
@@ -21,20 +25,20 @@ export default {
     }
     console.log('Response was okay.');
 
+    const documents = responseData.map(document => {
+      return {
+        id: document.id,
+        filename: document.filename,
+        size: document.size,
+        lastModifiedDate: document.lastModifiedDate,
+        contentType: document.contentType
+      };
+    });
+
     console.log(responseData);
+    console.log(documents);
 
-    const documents = [
-      {
-        id: 0,
-        filename: 'dummy0.json',
-        contentType: 'application/json',
-        size: 42,
-        lastModifiedDate: new Date(),
-        blob: new Blob(['Hello World!'])
-      }
-    ];
-
-    context.commit('setAllDocument', documents);
+    context.commit('setAllDocument', responseData);
   },
   async upload(context, payload) {
     console.log('Requesting to upload new document');
@@ -43,26 +47,19 @@ export default {
     const document = payload.document;
     const cryptoKeys = context.rootGetters['user/cryptoKeys'];
 
+    console.log('Reqeusting to encrypt filename');
     const filename = await encryptWithDataNameKey(
       document.filename,
       cryptoKeys.dataNameKey.key,
       cryptoKeys.dataNameKey.iv
     );
+    console.log('Reqeusting to encrypt contentType');
     const contentType = await encryptWithDataNameKey(
       document.contentType,
       cryptoKeys.dataNameKey.key,
       cryptoKeys.dataNameKey.iv
     );
-    const size = await encryptWithDataNameKey(
-      document.size,
-      cryptoKeys.dataNameKey.key,
-      cryptoKeys.dataNameKey.iv
-    );
-    const lastModifiedDate = await encryptWithDataNameKey(
-      document.lastModifiedDate,
-      cryptoKeys.dataNameKey.key,
-      cryptoKeys.dataNameKey.iv
-    );
+    console.log('Reqeusting to encrypt blob');
     const blob = await encryptDocument(
       document.blob,
       cryptoKeys.rsaPSS.privateKey,
@@ -70,7 +67,8 @@ export default {
     );
 
     const token = context.rootGetters['auth/token'];
-    const response = await fetch(`${BASE_URL}/documents.json`, {
+    console.log('Requesting to send document to mw');
+    const response = await fetch(`${BASE_URL}/documents/`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -79,8 +77,8 @@ export default {
       body: JSON.stringify({
         filename: filename,
         contentType: contentType,
-        size: size,
-        lastModifiedDate: lastModifiedDate,
+        size: document.size,
+        lastModifiedDate: document.lastModifiedDate,
         blob: blob
       })
     });
@@ -99,10 +97,14 @@ export default {
   async delete(context, payload) {
     console.log('Requesting to delete document');
 
+    const token = context.rootGetters['auth/token'];
     const response = await fetch(
-      `${BASE_URL}/documents/${payload.documentId}.json`,
+      `${BASE_URL}/documents/${payload.documentId}`,
       {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       }
     );
 

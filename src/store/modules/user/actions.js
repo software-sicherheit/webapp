@@ -16,7 +16,7 @@ import {
 } from '../../../api/wca/index.js';
 import store from '../../index.js';
 
-const BASE_URL = 'https://e2e-cloud.firebaseio.com';
+const BASE_URL = 'http://localhost:8085/api/v1';
 
 export default {
   async registerUser(context, payload) {
@@ -71,9 +71,13 @@ export default {
 
     console.log('Requesting to post new crypto keys to middleware');
 
-    const userId = store.getters['auth/userId'];
-    const response = await fetch(`${BASE_URL}/users/${userId}.json`, {
-      method: 'PUT',
+    const token = context.rootGetters['auth/token'];
+    const response = await fetch(`${BASE_URL}/users/`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify({
         passwordKey: {
           salt: saltPasswordKey
@@ -106,9 +110,12 @@ export default {
   },
   async loginUser(context, payload) {
     console.log('Requesting to get exisiting crypto keys from middleware');
-    const userId = store.getters['auth/userId'];
-    const response = await fetch(`${BASE_URL}/users/${userId}.json`, {
-      method: 'GET'
+    const token = context.rootGetters['auth/token'];
+    const response = await fetch(`${BASE_URL}/users`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     });
 
     const responseData = await response.json();
@@ -172,14 +179,17 @@ export default {
   async deleteAccount(context) {
     console.log('Requesting to delete account.');
 
-    const userId = store.getters['auth/userId'];
-    const response = await fetch(`${BASE_URL}/users/${userId}.json`, {
-      method: 'DELETE'
+    const token = context.rootGetters['auth/token'];
+    const response = await fetch(`${BASE_URL}/users`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     });
 
-    const responseData = await response.json();
     if (!response.ok) {
       console.log('Response was not ok.');
+      const responseData = await response.json();
       throw new Error(
         responseData.messsage || 'Failed to communicate with database.'
       );

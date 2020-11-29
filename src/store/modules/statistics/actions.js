@@ -1,10 +1,14 @@
-const BASE_URL = 'https://e2e-cloud.firebaseio.com';
+const BASE_URL = 'http://localhost:8085/api/v1';
 
 export default {
   async fetchStatistics(context) {
     console.log('Requesting to get statistics overview from middleware');
-    const response = await fetch(`${BASE_URL}/statistics/overview.json`, {
-      method: 'GET'
+    const token = context.rootGetters['auth/token'];
+    const response = await fetch(`${BASE_URL}/statistics/overview`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     });
 
     const responseData = await response.json();

@@ -83,28 +83,6 @@ export default {
     console.log('Now commiting setAutoLogout to vuex');
     context.commit('setAutoLogout');
   },
-  async deleteAccount(context) {
-    console.log(`Reqeusting to delete account.`);
-
-    const token = store.getters['auth/token'];
-    const endpoint = `https://identitytoolkit.googleapis.com/v1/accounts:delete?key=AIzaSyArHTXn2ZXg36aPEbWD4jJNtVyFJ1D3xbw`;
-    console.log('Requesting to delete account from middleware');
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      body: JSON.stringify({ idToken: token })
-    });
-
-    const responseData = await response.json();
-    if (!response.ok) {
-      console.log('Response was not ok.');
-      throw new Error(
-        responseData.message || 'Failed to authenticate. Check your login data.'
-      );
-    }
-
-    console.log('Response was okay and now now dispatching logout to vuex');
-    return context.dispatch('logout');
-  },
   async changePassword(context, payload) {
     const passwordHash = await getPasswordHash(payload.password);
     console.log(
