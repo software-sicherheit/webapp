@@ -11,8 +11,6 @@ export default {
     state.documents = payload;
   },
   setDownloadedDocument(state, payload) {
-    console.log(state);
-    console.log(payload);
     state.downloadedDocument = payload;
   }
 };

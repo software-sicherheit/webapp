@@ -17,7 +17,8 @@ import {
   base64StringToArrayBuffer,
   stringToArrayBuffer,
   arrayBufferToBase64,
-  blobToArrayBuffer
+  blobToArrayBuffer,
+  arrayBufferToString
 } from './utils.js';
 import {
   BEGIN_AES_KEYS_BLOCK,
@@ -225,8 +226,8 @@ export const encryptDocument = async (
   );
 };
 
-export const encryptWithDataNameKey = (filename, dataNameKey, iv) =>
-  Promise.resolve(stringToArrayBuffer(filename))
+export const encryptWithDataNameKey = (content, dataNameKey, iv) =>
+  Promise.resolve(blobToArrayBuffer(content))
     .then(async arrayBuffer =>
       wca.encrypt(
         AES_CBC_PASSWORD_KEY_ALGORITHM(base64StringToArrayBuffer(iv)),
@@ -236,11 +237,38 @@ export const encryptWithDataNameKey = (filename, dataNameKey, iv) =>
     )
     .then(arrayBuffer => arrayBufferToBase64(arrayBuffer));
 
+export const decryptWithDataNameKey = async (content, dataNameKey, iv) =>
+  Promise.resolve(base64StringToArrayBuffer(content))
+    .then(async arrayBuffer =>
+      wca.decrypt(
+        AES_CBC_PASSWORD_KEY_ALGORITHM(base64StringToArrayBuffer(iv)),
+        dataNameKey,
+        arrayBuffer
+      )
+    )
+    .then(arrayBuffer => arrayBufferToString(arrayBuffer));
+
 export const decryptedBlob = async blob => {
-  const arrayBuffer = await blobToArrayBuffer(blob);
-  const { byteLength } = arrayBuffer;
+  console.log(blob);
+  const arrayBuffer = base64StringToArrayBuffer(blob);
+  console.log(1);
+  const byteLength = arrayBuffer.byteLength;
+
+  console.log(byteLength);
+  console.log(BEGIN_BLOB());
+  console.log(END_BLOB(byteLength));
 
   const encryptedBlob = arrayBuffer.slice(BEGIN_BLOB(), END_BLOB(byteLength));
+  console.log(2);
+  console.log(encryptedBlob);
+  console.log(arrayBuffer.slice(BEGIN_IV(byteLength), END_IV(byteLength)));
+  console.log(
+    arrayBuffer.slice(
+      BEGIN_AES_KEYS_BLOCK(byteLength),
+      END_AES_KEYS_BLOCK(byteLength)
+    )
+  );
+
   const decryptedBlob = await decryptBlob(
     encryptedBlob,
     arrayBuffer.slice(BEGIN_IV(byteLength), END_IV(byteLength)),

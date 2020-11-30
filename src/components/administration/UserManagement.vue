@@ -76,7 +76,7 @@ export default {
       console.log('Requesting to fetch users');
       this.isLoading = true;
       try {
-        await this.$store.dispatch('administration/fetchUsers');
+        // await this.$store.dispatch('administration/fetchUsers');
         console.log('Successfully fetched users');
       } catch (err) {
         console.error(err);
@@ -86,9 +86,9 @@ export default {
     async confirmDialog() {
       console.log('Requesting to delete users');
       try {
-        await this.$store.dispatch('administration/deleteUsers', {
-          userId: this.selectedUsers.id
-        });
+        // await this.$store.dispatch('administration/deleteUsers', {
+        // userId: this.selectedUsers.id
+        // });
         console.log('Successfully deleted users');
       } catch (err) {
         console.error(err);

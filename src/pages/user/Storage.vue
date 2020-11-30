@@ -124,8 +124,6 @@ export default {
           lastModifiedDate: file.lastModified,
           blob: new Blob([file])
         };
-        console.log(file);
-        console.log(document);
         await this.$store.dispatch('storage/upload', { document: document });
         await this.loadDocuments();
       } catch (err) {
@@ -140,7 +138,7 @@ export default {
         filename: filename
       });
       const document = await this.$store.getters['storage/downloadedDocument'];
-      saveData(document.blob, document.filename);
+      saveData(new Blob([document.blob]), document.filename);
       this.isLoading = false;
     },
     async deleteDocument(filename) {
@@ -151,6 +149,7 @@ export default {
         await this.$store.dispatch('storage/delete', {
           filename: filename
         });
+        await this.loadDocuments();
       } catch (err) {
         console.error(err);
       }

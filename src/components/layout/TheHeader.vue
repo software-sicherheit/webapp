@@ -89,11 +89,11 @@ export default {
         label: 'Settings',
         icon: 'pi pi-cog',
         items: [
-          {
-            label: 'Change Password',
-            icon: 'pi pi-user-edit',
-            command: () => this.openPasswordChangeDialog()
-          },
+          // {
+          //   label: 'Change Password',
+          //   icon: 'pi pi-user-edit',
+          //   command: () => this.openPasswordChangeDialog()
+          // },
           {
             label: 'Delete Account',
             icon: 'pi pi-user-minus',

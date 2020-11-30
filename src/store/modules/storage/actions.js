@@ -1,4 +1,7 @@
-import { encryptDocument, decryptedBlob } from '../../../api/wca/index.js';
+import {
+  encryptWithDataNameKey,
+  decryptWithDataNameKey
+} from '../../../api/wca/index.js';
 
 const BASE_URL = 'http://localhost:8085/api/v1';
 
@@ -30,10 +33,11 @@ export default {
     const document = payload.document;
     const cryptoKeys = context.rootGetters['user/cryptoKeys'];
     console.log('Reqeusting to encrypt blob');
-    const blob = await encryptDocument(
+    console.log(document.blob);
+    const blob = await encryptWithDataNameKey(
       document.blob,
-      cryptoKeys.rsaPSS.privateKey,
-      cryptoKeys.rsaOAEP.publicKey
+      cryptoKeys.dataNameKey.key,
+      cryptoKeys.dataNameKey.iv
     );
 
     const token = context.rootGetters['auth/token'];
@@ -47,7 +51,7 @@ export default {
       body: JSON.stringify({
         filename: document.filename,
         contentType: document.contentType,
-        size: document.size,
+        size: blob.length,
         lastModifiedDate: document.lastModifiedDate,
         blob: blob
       })
@@ -105,13 +109,18 @@ export default {
       );
     }
 
-    console.log(responseData);
-    const document = decryptedBlob(responseData);
-    console.log(document);
+    const cryptoKeys = context.rootGetters['user/cryptoKeys'];
+    console.log('Reqeusting to decrypt blob');
+    const blob = await decryptWithDataNameKey(
+      responseData.blob,
+      cryptoKeys.dataNameKey.key,
+      cryptoKeys.dataNameKey.iv
+    );
+    responseData.blob = blob;
 
     console.log(
       'Response was okay and now setting downloaded document to vuex'
     );
-    context.commit('setDownloadedDocument', document);
+    context.commit('setDownloadedDocument', responseData);
   }
 };
