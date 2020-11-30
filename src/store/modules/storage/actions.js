@@ -1,7 +1,4 @@
-import {
-  encryptDocument,
-  encryptWithDataNameKey
-} from '../../../api/wca/index.js';
+import { encryptDocument, decryptedBlob } from '../../../api/wca/index.js';
 
 const BASE_URL = 'http://localhost:8085/api/v1';
 
@@ -24,20 +21,6 @@ export default {
       );
     }
     console.log('Response was okay.');
-
-    const documents = responseData.map(document => {
-      return {
-        id: document.id,
-        filename: document.filename,
-        size: document.size,
-        lastModifiedDate: document.lastModifiedDate,
-        contentType: document.contentType
-      };
-    });
-
-    console.log(responseData);
-    console.log(documents);
-
     context.commit('setAllDocument', responseData);
   },
   async upload(context, payload) {
@@ -46,19 +29,6 @@ export default {
 
     const document = payload.document;
     const cryptoKeys = context.rootGetters['user/cryptoKeys'];
-
-    console.log('Reqeusting to encrypt filename');
-    const filename = await encryptWithDataNameKey(
-      document.filename,
-      cryptoKeys.dataNameKey.key,
-      cryptoKeys.dataNameKey.iv
-    );
-    console.log('Reqeusting to encrypt contentType');
-    const contentType = await encryptWithDataNameKey(
-      document.contentType,
-      cryptoKeys.dataNameKey.key,
-      cryptoKeys.dataNameKey.iv
-    );
     console.log('Reqeusting to encrypt blob');
     const blob = await encryptDocument(
       document.blob,
@@ -75,8 +45,8 @@ export default {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        filename: filename,
-        contentType: contentType,
+        filename: document.filename,
+        contentType: document.contentType,
         size: document.size,
         lastModifiedDate: document.lastModifiedDate,
         blob: blob
@@ -98,15 +68,12 @@ export default {
     console.log('Requesting to delete document');
 
     const token = context.rootGetters['auth/token'];
-    const response = await fetch(
-      `${BASE_URL}/documents/${payload.documentId}`,
-      {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+    const response = await fetch(`${BASE_URL}/documents/${payload.filename}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`
       }
-    );
+    });
 
     const responseData = await response.json();
     if (!response.ok) {
@@ -118,5 +85,33 @@ export default {
 
     console.log('Response was okay and now removing document from vuex');
     context.commit('removeDocument', payload);
+  },
+  async downloadDocument(context, payload) {
+    console.log('Requesting to download document');
+
+    const token = context.rootGetters['auth/token'];
+    const response = await fetch(`${BASE_URL}/documents/${payload.filename}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const responseData = await response.json();
+    if (!response.ok) {
+      console.log('Response was not ok.');
+      throw new Error(
+        responseData.messsage || 'Failed to communicate with database.'
+      );
+    }
+
+    console.log(responseData);
+    const document = decryptedBlob(responseData);
+    console.log(document);
+
+    console.log(
+      'Response was okay and now setting downloaded document to vuex'
+    );
+    context.commit('setDownloadedDocument', document);
   }
 };

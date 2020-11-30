@@ -19,6 +19,14 @@ import {
   arrayBufferToBase64,
   blobToArrayBuffer
 } from './utils.js';
+import {
+  BEGIN_AES_KEYS_BLOCK,
+  END_AES_KEYS_BLOCK,
+  BEGIN_IV,
+  END_IV,
+  BEGIN_BLOB,
+  END_BLOB
+} from './containerConfig';
 
 export const newIV = () =>
   Promise.resolve(
@@ -227,3 +235,32 @@ export const encryptWithDataNameKey = (filename, dataNameKey, iv) =>
       )
     )
     .then(arrayBuffer => arrayBufferToBase64(arrayBuffer));
+
+export const decryptedBlob = async blob => {
+  const arrayBuffer = await blobToArrayBuffer(blob);
+  const { byteLength } = arrayBuffer;
+
+  const encryptedBlob = arrayBuffer.slice(BEGIN_BLOB(), END_BLOB(byteLength));
+  const decryptedBlob = await decryptBlob(
+    encryptedBlob,
+    arrayBuffer.slice(BEGIN_IV(byteLength), END_IV(byteLength)),
+    arrayBuffer.slice(
+      BEGIN_AES_KEYS_BLOCK(byteLength),
+      END_AES_KEYS_BLOCK(byteLength)
+    )
+  );
+  return new Blob([decryptedBlob]);
+};
+
+const decryptBlob = (encryptedBlob, iv, aesKeyBlock) =>
+  wca
+    .importKey(
+      'raw',
+      base64StringToArrayBuffer(aesKeyBlock),
+      AES_CBC_PASSWORD_KEY_GEN_ALGORITHM(),
+      true,
+      ['encrypt', 'decrypt']
+    )
+    .then(cryptoKey =>
+      wca.decrypt(AES_CBC_PASSWORD_KEY_ALGORITHM(iv), cryptoKey, encryptedBlob)
+    );

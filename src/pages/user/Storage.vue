@@ -55,13 +55,13 @@
               icon="pi pi-download"
               class="p-pv-button-rounded p-pv-button-success p-mr-2 p-shadow-10"
               :disabled="isLoading"
-              @click="downloadDocument(slotProps.data.id)"
+              @click="downloadDocument(slotProps.data.filename)"
             />
             <pv-button
               icon="pi pi-trash"
               class="p-pv-button-rounded p-pv-button-warning p-shadow-10"
               :disabled="isLoading"
-              @click="deleteDocument(slotProps.data.id)"
+              @click="deleteDocument(slotProps.data.filename)"
             />
           </template>
         </column>
@@ -102,10 +102,6 @@ export default {
     formatBytes(value) {
       return value + ' Bytes';
     },
-    formatDateTime(value) {
-      return value;
-      //return value.toISOString();
-    },
     async loadDocuments() {
       this.isLoading = true;
       console.log('Reqeusting to load all Documents');
@@ -137,22 +133,23 @@ export default {
       }
       this.isLoading = false;
     },
-    async downloadDocument(documentId) {
+    async downloadDocument(filename) {
       this.isLoading = true;
-      console.log('Requesting to download document with id=' + documentId);
-      const document = this.documents.find(
-        document => document.id === documentId
-      );
+      console.log('Requesting to download document with filename=' + filename);
+      await this.$store.dispatch('storage/downloadDocument', {
+        filename: filename
+      });
+      const document = await this.$store.getters['storage/downloadedDocument'];
       saveData(document.blob, document.filename);
       this.isLoading = false;
     },
-    async deleteDocument(documentId) {
+    async deleteDocument(filename) {
       this.isLoading = true;
       console.log(this.documents);
-      console.log('Requesting to delete document with id=' + documentId);
+      console.log('Requesting to delete document with filename=' + filename);
       try {
         await this.$store.dispatch('storage/delete', {
-          documentId: documentId
+          filename: filename
         });
       } catch (err) {
         console.error(err);

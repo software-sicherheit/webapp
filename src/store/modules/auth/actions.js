@@ -1,8 +1,6 @@
 import { getPasswordHash } from '../../../api/wca/index.js';
 import store from '../../index.js';
 
-let timer;
-
 export default {
   async login(context, payload) {
     console.log(
@@ -49,13 +47,7 @@ export default {
     }
     console.log('Response was okay and now setting data to localStorage');
 
-    //const expiresIn = +responseData.expiresIn * 1000;
-    //const expirationDate = new Date().getTime() + expiresIn;
-
     localStorage.setItem('access_token', responseData.access_token);
-
-    //console.log('Now dispatching autoLogout to vuex');
-    //timer = setTimeout(() => context.dispatch('autoLogout'), expiresIn);
 
     console.log('Now committing user auth data to vuex');
     context.commit('setUser', {
@@ -65,23 +57,11 @@ export default {
   logout(context) {
     console.log('Now removing data from localStorage');
     localStorage.removeItem('token');
-    localStorage.removeItem('userId');
-    localStorage.removeItem('tokenExpiration');
-
-    console.log('Now clearing timer for autoLogout');
-    clearTimeout(timer);
 
     console.log('Now commiting setUser to vuex');
     context.commit('setUser', {
-      token: null,
-      userId: null
+      token: null
     });
-  },
-  autoLogout(context) {
-    console.log('Now dispatching logout to vuex');
-    context.dispatch('logout');
-    console.log('Now commiting setAutoLogout to vuex');
-    context.commit('setAutoLogout');
   },
   async changePassword(context, payload) {
     const passwordHash = await getPasswordHash(payload.password);
@@ -110,20 +90,13 @@ export default {
     }
     console.log('Response was okay and now setting data to localStorage');
 
-    const expiresIn = +responseData.expiresIn * 1000;
-    const expirationDate = new Date().getTime() + expiresIn;
-
-    localStorage.setItem('token', responseData.idToken);
-    localStorage.setItem('userId', responseData.localId);
-    localStorage.setItem('tokenExpiration', expirationDate);
+    localStorage.setItem('access_token', responseData.access_token);
 
     console.log('Now dispatching autoLogout to vuex');
-    timer = setTimeout(() => context.dispatch('autoLogout'), expiresIn);
 
     console.log('Now committing user auth data to vuex');
     context.commit('setUser', {
-      token: responseData.idToken,
-      userId: responseData.localId
+      token: responseData.access_token
     });
   }
 };
