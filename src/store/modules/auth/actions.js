@@ -8,7 +8,7 @@ export default {
     );
     return context.dispatch('auth', {
       ...payload,
-      endpoint: 'http://localhost:8085/api/v1/login/'
+      endpoint: 'https://10.28.55.157/api/v1/login/'
     });
   },
   async signup(context, payload) {
@@ -17,7 +17,7 @@ export default {
     );
     return context.dispatch('auth', {
       ...payload,
-      endpoint: 'http://localhost:8085/api/v1/register/'
+      endpoint: 'https://10.28.55.157/api/v1/register/'
     });
   },
   async auth(context, payload) {

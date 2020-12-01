@@ -16,7 +16,7 @@ import {
 } from '../../../api/wca/index.js';
 import store from '../../index.js';
 
-const BASE_URL = 'http://localhost:8085/api/v1';
+const BASE_URL = 'https://10.28.55.157/api/v1';
 
 export default {
   async registerUser(context, payload) {
