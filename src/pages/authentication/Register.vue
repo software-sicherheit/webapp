@@ -147,6 +147,7 @@ export default {
           await this.$store.dispatch('user/registerUser', {
             password: this.password
           });
+          await this.$store.dispatch('auth/logout');
           console.log('Successfully signed up');
           await this.$router.replace('/storage');
         } catch (err) {
