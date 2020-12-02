@@ -130,6 +130,7 @@ export default {
         console.error(err);
       }
       this.isLoading = false;
+      event.files = '';
     },
     async downloadDocument(filename) {
       this.isLoading = true;

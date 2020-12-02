@@ -33,14 +33,26 @@ export default {
     this.$store.getters['user/rsaOaepPrivateKeyFingerprint'].then(key => {
       this.rsaOaepPrivateKeyFingerprint = key;
     });
+    this.$store.getters['user/rsaOaepPrivateKey'].then(key => {
+      this.rsaOaepPrivateKey = key;
+    });
     this.$store.getters['user/rsaOaepPublicKeyFingerprint'].then(key => {
       this.rsaOaepPublicKeyFingerprint = key;
+    });
+    this.$store.getters['user/rsaOaepPublicKey'].then(key => {
+      this.rsaOaepPublicKey = key;
     });
     this.$store.getters['user/rsaPssPrivateKeyFingerprint'].then(key => {
       this.rsaPssPrivateKeyFingerprint = key;
     });
+    this.$store.getters['user/rsaPssPrivateKey'].then(key => {
+      this.rsaPssPrivateKey = key;
+    });
     this.$store.getters['user/rsaPssPublicKeyFingerprint'].then(key => {
       this.rsaPssPublicKeyFingerprint = key;
+    });
+    this.$store.getters['user/rsaPssPublicKey'].then(key => {
+      this.rsaPssPublicKey = key;
     });
   },
   data() {
@@ -50,20 +62,6 @@ export default {
       rsaPssPrivateKeyFingerprint: '',
       rsaPssPublicKeyFingerprint: ''
     };
-  },
-  computed: {
-    rsaOaepPrivateKey() {
-      return this.$store.getters['user/rsaOaepPrivateKey'];
-    },
-    rsaOaepPublicKey() {
-      return this.$store.getters['user/rsaOaepPublicKey'];
-    },
-    rsaPssPrivateKey() {
-      return this.$store.getters['user/rsaPssPrivateKey'];
-    },
-    rsaPssPublicKey() {
-      return this.$store.getters['user/rsaPssPublicKey'];
-    }
   },
   methods: {
     exportPublicRsaOaepKey() {
