@@ -65,17 +65,24 @@ export default {
   },
   methods: {
     exportPublicRsaOaepKey() {
-      console.log(this.rsaOaepPublicKey);
-      saveAsc(this.rsaOaepPublicKey, 'rsa_oaep_publickey');
+      this.$store.getters['user/rsaOaepPublicKey'].then(key =>
+        saveAsc(key, 'rsa_oaep_publickey')
+      );
     },
     exportPrivateRsaOaepKey() {
-      saveAsc(this.rsaOaepPrivateKey, 'rsa_oaep_privatekey');
+      this.$store.getters['user/rsaOaepPrivateKey'].then(key =>
+        saveAsc(key, 'rsa_oaep_privatekey')
+      );
     },
     exportPublicRsaPssKey() {
-      saveAsc(this.rsaPssPublicKey, 'rsa_pss_publickey');
+      this.$store.getters['user/rsaPssPublicKey'].then(key =>
+        saveAsc(key, 'rsa_pss_publickey')
+      );
     },
     exportPrivateRsaPssKey() {
-      saveAsc(this.rsaPssPrivateKey, 'rsa_pss_privatekey');
+      this.$store.getters['user/rsaPssPrivateKey'].then(key =>
+        saveAsc(key, 'rsa_pss_privatekey')
+      );
     }
   }
 };
