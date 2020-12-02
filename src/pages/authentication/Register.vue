@@ -148,8 +148,8 @@ export default {
             password: this.password
           });
           await this.$store.dispatch('auth/logout');
+          this.$router.replace('/login');
           console.log('Successfully signed up');
-          await this.$router.replace('/storage');
         } catch (err) {
           console.error(err);
         }
